@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Criação de Anúncio de Imóvel</title>
+  <link rel="stylesheet" href="../CSS/venda.css">
+</head>
+<body>
+  <header>
+    <h1>Crie seu Anúncio</h1>
+  </header>
+
+  <main class="container">
+    <div class="anuncio-card">
+
+      <!-- Imagem clicável -->
+      <div class="imagem-placeholder" onclick="document.getElementById('fileInput').click()">
+        <img id="preview" src="" alt="Clique para adicionar imagem" style="display: none;">
+        <!-- Imagem preview -->
+        <span id="placeholderText">Clique para adicionar imagem do imóvel</span>
+        <!-- Texto placeholder -->
+        <input type="file" id="fileInput" accept="image/*" hidden>
+        <!-- Input file para upload de imagem -->
+      </div>
+
+      <h2 contenteditable="true" class="editavel">Título do Anúncio (ex: Apartamento à venda)</h2>
+      <!-- Título do anúncio -->
+      <p class="local" contenteditable="true">Endereço (ex: Rua X, Fortaleza/CE)</p>
+      <!-- Endereço do imóvel -->
+      <p class="info" contenteditable="true">Área útil, quartos, vagas (ex: 60m² - 3 quartos - 2 vagas)</p>
+      <!-- Informações do imóvel -->
+      <p class="preco" contenteditable="true">R$ 0,00</p>
+      <!-- Preço do imóvel -->
+
+      <h3>Selecione as características:</h3>
+      <!-- Características do imóvel -->
+      <div class="tags-box">
+        
+      <h3>Selecione as características:</h3>
+
+<!-- Quartos -->
+<div class="filter-section">
+  <label>Quartos</label>
+  <div class="quantity-btns">
+    <button onclick="toggleAtivo(this)">+1</button>
+    <button onclick="toggleAtivo(this)">+2</button>
+    <button onclick="toggleAtivo(this)">+3</button>
+    <button onclick="toggleAtivo(this)">+4</button>
+  </div>
+</div>
+
+<!-- Área útil -->
+<div class="filter-section">
+  <label>Área útil (m²)</label>
+  <div class="area-inputs">
+    <input type="number" placeholder="De" />
+    <input type="number" placeholder="Até" />
+  </div>
+</div>
+
+<!-- Área de Lazer -->
+<div class="filter-section expandable">
+  <div class="section-header" onclick="toggleSection(this)">
+    <label>Área de Lazer</label>
+    <span class="toggle">▼</span>
+  </div>
+  <div class="tags">
+    <button onclick="toggleAtivo(this)">Brinquedoteca</button>
+    <button onclick="toggleAtivo(this)">Churrasqueira</button>
+    <button onclick="toggleAtivo(this)">Espaço gourmet</button>
+    <button onclick="toggleAtivo(this)">Piscina</button>
+    <button onclick="toggleAtivo(this)">Playground</button>
+    <button onclick="toggleAtivo(this)">Salão de festas</button>
+    <button onclick="toggleAtivo(this)">Salão de jogos</button>
+  </div>
+</div>
+
+<!-- Conveniências -->
+<div class="filter-section expandable">
+  <div class="section-header" onclick="toggleSection(this)">
+    <label>Conveniências</label>
+    <span class="toggle">▼</span>
+  </div>
+  <div class="tags">
+    <button onclick="toggleAtivo(this)">Ar-condicionado</button>
+    <button onclick="toggleAtivo(this)">Armários Planejados</button>
+    <button onclick="toggleAtivo(this)">Elevador</button>
+    <button onclick="toggleAtivo(this)">Jardim</button>
+    <button onclick="toggleAtivo(this)">Mobilidade</button>
+    <button onclick="toggleAtivo(this)">Quintal</button>
+    <button onclick="toggleAtivo(this)">Varanda</button>
+  </div>
+</div>
+
+<!-- Funcional -->
+<div class="filter-section expandable">
+  <div class="section-header" onclick="toggleSection(this)">
+    <label>Funcional</label>
+    <span class="toggle">▼</span>
+  </div>
+  <div class="tags">
+    <button onclick="toggleAtivo(this)">Área de serviço</button>
+    <button onclick="toggleAtivo(this)">Ático</button>
+    <button onclick="toggleAtivo(this)">Closet</button>
+    <button onclick="toggleAtivo(this)">Dependência de Empregada</button>
+    <button onclick="toggleAtivo(this)">Edícula</button>
+    <button onclick="toggleAtivo(this)">Escritório</button>
+    <button onclick="toggleAtivo(this)">Lavabo</button>
+    <button onclick="toggleAtivo(this)">Lavanderia</button>
+  </div>
+</div>
+
+      
+      
+      
+      
+      
+      
+      </div>
+
+      <div class="descricao" contenteditable="true">
+      <!-- Descrição do imóvel -->
+        Clique aqui para escrever a descrição do imóvel...
+      </div>
+
+      <button class="btn-publicar" onclick="publicar()">Publicar Anúncio</button>
+      <!-- Botão de publicação do anúncio -->
+    </div>
+  </main>
+
+  <script src="../JS/venda.js"></script>
+</body>
+</html>

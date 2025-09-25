@@ -31,7 +31,7 @@ routes.post('/cadastrar', async (req, res) => {
     try{
     const { email, senha } = req.body
     const hash = await CriarHash(senha, 10)
-
+    console.log('To aqui')
     await sql`INSERT INTO people(email, senha, funcao) values (${email}, ${hash},'cliente')`
     return res.status(200).json('cadastrado com sucesso')
 
@@ -43,10 +43,10 @@ routes.post('/cadastrar', async (req, res) => {
 
 // DEDICADA AO CADASTRO DE CASAS
 
-routes.get('/Imovel/:id', async (req, res) => {
+routes.get('/imovel/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const casa = await sql`SELECT * FROM Imovel WHERE id_imovel = ${id}`;
+        const casa = await sql`SELECT * FROM imovel WHERE id_imovel = ${id}`;
 
         if (casa.length === 0) {
             return res.status(404).json({ mensagem: 'Casa não encontrada.' });
@@ -59,15 +59,57 @@ routes.get('/Imovel/:id', async (req, res) => {
     }
 });
 
+routes.get('/imoveis', async (req, res) => {
+  try {
+    const { busca, tipo_moradia, finalidade, preco_maximo, preco_minimo } = req.query;
+
+    // start with a fragment that always exists
+    let where = sql`WHERE 1=1`;
+
+    // helper to escape % and _ in user input for LIKE
+    const escapeLike = s => String(s).replace(/([%_\\])/g, '\\$1');
+
+    if (busca) {
+      const pattern = `%${escapeLike(busca)}%`;
+      // use ILIKE for case-insensitive match and ESCAPE '\\' because we escaped
+      where = sql`${where} AND nome_casa ILIKE ${pattern} ESCAPE '\\'`;
+    }
+
+    if (tipo_moradia) {
+      where = sql`${where} AND tipo_moradia = ${String(tipo_moradia)}`;
+    }
+
+    if (finalidade) {
+      where = sql`${where} AND finalidade = ${String(finalidade)}`;
+    }
+
+    if (preco_minimo) {
+      const min = Number(preco_minimo);
+      if (!Number.isNaN(min)) where = sql`${where} AND preco >= ${min}`;
+    }
+
+    if (preco_maximo) {
+      const max = Number(preco_maximo);
+      if (!Number.isNaN(max)) where = sql`${where} AND preco <= ${max}`;
+    }
+
+    const results = await sql`SELECT * FROM imovel ${where}`;
+    return res.status(200).json(results);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Erro no servidor' });
+  }
+});
 
 
-routes.post('/Imovel/cadastrar', async (req, res) => {
+
+routes.post('/imovel/cadastrar', async (req, res) => {
     try {
-        const { nome_casa,tipo_moradia,finalidade,preco,rua,bairro,numero,cep,area_total,quartos,banheiros,vagas_garagem,disponibilidade
+        const { nome_casa,tipo_moradia,finalidade,preco,rua,bairro,numero,cidade,estado,area_total,quartos,banheiros,vagas_garagem,disponibilidade
         } = req.body;
 
         await sql`
-            INSERT INTO Imovel (
+            INSERT INTO imovel (
                 nome_casa,
                 tipo_moradia, 
                 finalidade, 
@@ -75,7 +117,8 @@ routes.post('/Imovel/cadastrar', async (req, res) => {
                 rua,
                 bairro,
                 numero,
-                cep, 
+                cidade,
+                estado,
                 area_total, 
                 quartos, 
                 banheiros, 
@@ -85,10 +128,11 @@ routes.post('/Imovel/cadastrar', async (req, res) => {
                 ${tipo_moradia}, 
                 ${finalidade}, 
                 ${preco}, 
-                ${rua}
-                ${bairro}
-                ${numero}
-                ${cep}, 
+                ${rua},
+                ${bairro},
+                ${numero},
+                ${cidade},
+                ${estado}, 
                 ${area_total}, 
                 ${quartos}, 
                 ${banheiros}, 
@@ -102,7 +146,7 @@ routes.post('/Imovel/cadastrar', async (req, res) => {
     }
 });
 
-routes.put('/Imovel/:id', async (req, res) => {
+routes.put('/imovel/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const {
@@ -113,7 +157,8 @@ routes.put('/Imovel/:id', async (req, res) => {
             rua,
             bairro,
             numero,
-            CEP,
+            cidade,
+            estado,
             area_total,
             quartos,
             banheiros,
@@ -122,7 +167,7 @@ routes.put('/Imovel/:id', async (req, res) => {
         } = req.body;
 
         const update = await sql`
-            UPDATE casas SET
+            UPDATE imovel SET
                 nome_casa = ${nome_casa},
                 tipo_moradia = ${tipo_moradia},
                 finalidade = ${finalidade},
@@ -130,7 +175,8 @@ routes.put('/Imovel/:id', async (req, res) => {
                 rua = ${rua},
                 bairro = ${bairro},
                 numero = ${numero},
-                CEP = ${CEP},
+                cidade = ${cidade},
+                estado = ${estado},
                 area_total = ${area_total},
                 quartos = ${quartos},
                 banheiros = ${banheiros},
@@ -146,11 +192,11 @@ routes.put('/Imovel/:id', async (req, res) => {
     }
 });
 
-routes.delete('/Imovel/:id', async (req, res) => {
+routes.delete('/imovel/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
-        const result = await sql`DELETE FROM Imovel WHERE id_imovel = ${id}`;
+        const result = await sql`DELETE FROM imovel WHERE id_imovel = ${id}`;
 
         return res.status(200).json({ mensagem: 'Casa excluída com sucesso.' });
     } catch (error) {
@@ -159,12 +205,13 @@ routes.delete('/Imovel/:id', async (req, res) => {
     }
 });
 
+//CADASTRO DE IMAGEM DAS CASAS
 
 routes.post('/fotos_casa', async (req, res) =>{
     try{
         await sql`
-        INSERT INTO fotos_casa(imagem)
-	VALUES (${req.files.imagem.mimetype})`;
+        insert into fotos_casa(nome, mimetype) 
+        values(${req.files.name}, ${req.files.mimetype})`;
         return res.status(201).json('ok')
     }
     catch(error){
@@ -183,6 +230,4 @@ routes.get('/fotos_casa', async (req, res) =>{
     }
 })
 
-
 export default routes
-
