@@ -109,35 +109,37 @@ routes.post('/imovel/cadastrar', async (req, res) => {
         } = req.body;
 
         await sql`
-            INSERT INTO imovel (
-                nome_casa,
-                tipo_moradia, 
-                finalidade, 
-                preco, 
-                rua,
-                bairro,
-                numero,
-                cidade,
-                estado,
-                area_total, 
-                quartos, 
-                banheiros, 
-                vagas_garagem
-            ) VALUES (
-                ${nome_casa},
-                ${tipo_moradia}, 
-                ${finalidade}, 
-                ${preco}, 
-                ${rua},
-                ${bairro},
-                ${numero},
-                ${cidade},
-                ${estado}, 
-                ${area_total}, 
-                ${quartos}, 
-                ${banheiros}, 
-                ${vagas_garagem}
-                ${disponibilidade})`;
+  INSERT INTO imovel (
+    nome_casa,
+    tipo_moradia, 
+    finalidade, 
+    preco, 
+    rua,
+    bairro,
+    numero,
+    cidade,
+    estado,
+    area_total, 
+    quartos, 
+    banheiros, 
+    vagas_garagem,
+    disponibilidade
+  ) VALUES (
+    ${nome_casa},
+    ${tipo_moradia}, 
+    ${finalidade}, 
+    ${preco}, 
+    ${rua},
+    ${bairro},
+    ${numero},
+    ${cidade},
+    ${estado}, 
+    ${area_total}, 
+    ${quartos}, 
+    ${banheiros}, 
+    ${vagas_garagem},
+    ${disponibilidade}
+  )`;
 
         return res.status(200).json('Deu certinho aqui!!!');
     } catch (error) {
@@ -209,9 +211,10 @@ routes.delete('/imovel/:id', async (req, res) => {
 
 routes.post('/fotos_casa', async (req, res) =>{
     try{
+        //criar campo data como bytea
         await sql`
-        insert into fotos_casa(nome, mimetype) 
-        values(${req.files.name}, ${req.files.mimetype})`;
+        insert into fotos_casa(nome, mimetype, data) 
+        values(${req.body.nome}, ${req.body.mimetype}, decode(${req.body.data}, 'base64'))`;
         return res.status(201).json('ok')
     }
     catch(error){
