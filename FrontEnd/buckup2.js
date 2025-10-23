@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+  // =============================
   // MODAL DE CADASTRO / LOGIN
+  // =============================
   const signupModal = document.getElementById("signupModal");
   const btnSignup = document.getElementById("btn-signup");
   const registerFormElement = document.getElementById("registerForm");
@@ -15,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
       right: "10px",
       background: "transparent",
       border: "none",
-      fontSize: "24px",
+      fontSize: "18px",
       cursor: "pointer"
     });
     const modalContainer = signupModal.querySelector(".signupModal-container");
@@ -25,13 +27,18 @@ document.addEventListener("DOMContentLoaded", () => {
     btnClose.addEventListener("click", () => signupModal.close());
     signupModal.addEventListener("click", (e) => {
       const rect = signupModal.getBoundingClientRect();
-      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
-        signupModal.close();
-      }
+      if (
+        e.clientX < rect.left ||
+        e.clientX > rect.right ||
+        e.clientY < rect.top ||
+        e.clientY > rect.bottom
+      ) signupModal.close();
     });
   }
 
+  // =============================
   // TOGGLE LOGIN / REGISTER
+  // =============================
   const toggleBtn = document.getElementById("toggleBtn");
   const welcomeTitle = document.getElementById("welcomeTitle");
   const welcomeText = document.getElementById("welcomeText");
@@ -56,7 +63,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // =============================
   // UI DO USUÁRIO LOGADO
+  // =============================
   function setUserUI(userEmail) {
     const btnLogin = document.getElementById("btn-signup");
     if (!btnLogin) return;
@@ -110,7 +119,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const loggedUser = localStorage.getItem("user");
   if (loggedUser) setUserUI(loggedUser);
 
+  // =============================
   // REGISTRO
+  // =============================
   if (registerFormElement) {
     const registerMsg = document.createElement("p");
     registerMsg.style.color = "red";
@@ -131,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (senha !== confirmar) return registerMsg.textContent = "As senhas não coincidem!";
 
       try {
-        const res = await fetch("http://192.168.1.14:3000/cadastrar", {
+        const res = await fetch("http://192.168.1.4:3000/cadastrar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, senha }),
@@ -151,7 +162,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // =============================
   // LOGIN
+  // =============================
   if (loginFormElement) {
     loginFormElement.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -166,7 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!email || !senha) return registerMsg.textContent = "Preencha todos os campos!";
 
       try {
-        const res = await fetch("http://192.168.1.14:3000/login", {
+        const res = await fetch("http://192.168.1.4:3000/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, senha }),
@@ -186,6 +199,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // =============================
+  // BUSCA DE IMÓVEIS
+  // =============================
   const searchInput = document.querySelector('.search input[type="search"]');
   const typeSelect = document.querySelector('.search select');
   const searchButton = document.querySelector('.search .go');
@@ -193,29 +209,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function fetchImoveis() {
     try {
-      const res = await fetch("http://192.168.1.14:3000/imoveis");
+      const res = await fetch("http://192.168.1.4:3000/imoveis");
       if (!res.ok) throw new Error("Falha ao conectar ao servidor");
       const imoveis = await res.json();
 
-      const imoveisComFotos = await Promise.all(imoveis.map(async (imovel) => {
+      // Buscar fotos pelo ID do imóvel
+      const imoveisComImg = await Promise.all(imoveis.map(async (imovel) => {
         try {
-          const resImg = await fetch(`http://192.168.1.14:3000/fotos_casa?id_imovel=${imovel.id_imovel}`);
+          const resImg = await fetch(`http://192.168.1.4:3000/fotos_casa?id_imovel=${imovel.id_imovel}`);
           const fotos = resImg.ok ? await resImg.json() : [];
-          const imgUrl = fotos.length > 0 ? `data:${fotos[0].mimetype};base64,${fotos[0].data}` : 'img/padrao.jpg';
+          const imgUrl = fotos.length > 0
+            ? `data:${fotos[0].mimetype};base64,${fotos[0].data}`
+            : 'img/padrao.jpg';
           return { ...imovel, img: imgUrl, fotos };
         } catch {
           return { ...imovel, img: 'img/padrao.jpg', fotos: [] };
         }
       }));
 
-      return imoveisComFotos;
+      return imoveisComImg;
     } catch (err) {
       console.error("Erro ao buscar imóveis:", err);
       return [];
     }
   }
 
-  // FUNÇÃO DE RENDER EM GRID 1 GRANDE + 2 PEQUENAS
   function renderImoveis(imoveis) {
     if (!gridList) return;
     gridList.innerHTML = "";
@@ -227,28 +245,21 @@ document.addEventListener("DOMContentLoaded", () => {
     imoveis.forEach((imovel) => {
       const localizacao = `${imovel.rua}, ${imovel.numero} - ${imovel.bairro}, ${imovel.cidade} - ${imovel.estado}`;
       const article = document.createElement("article");
-      article.className = "listing grid-style";
+      article.className = "listing";
       article.setAttribute("role", "listitem");
 
-      const fotos = imovel.fotos.length > 0 ? imovel.fotos.slice(0, 3) : [{ data: imovel.img, mimetype: "image/jpeg" }];
-      
       article.innerHTML = `
-        <div class="grid-container">
-          <div class="grid-large">
-            <img src="data:${fotos[0].mimetype};base64,${fotos[0].data}" alt="${imovel.nome_casa}">
-          </div>
-          <div class="grid-small">
-            ${fotos.slice(1).map(f => `<img src="data:${f.mimetype};base64,${f.data}" alt="${imovel.nome_casa}">`).join('')}
-          </div>
-        </div>
+        <img src="${imovel.img}" alt="${imovel.nome_casa}">
         <div class="info">
           <div>
             <div style="font-weight:700">${imovel.nome_casa}</div>
             <div class="meta">${imovel.tipo_moradia} • ${imovel.area_total || ""}m²</div>
           </div>
-          <div class="card-footer">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
             <div class="price">R$ ${Number(imovel.preco).toLocaleString("pt-BR")}</div>
-            <button class="btn btn-primary open-hotel"
+            <button 
+              class="btn btn-primary open-hotel"
+              style="padding:8px 12px;border-radius:10px"
               data-title="${imovel.nome_casa}"
               data-price="R$ ${Number(imovel.preco).toLocaleString('pt-BR')}"
               data-location="${localizacao}"
@@ -256,10 +267,9 @@ document.addEventListener("DOMContentLoaded", () => {
               data-desc="Área total: ${imovel.area_total}m² • Garagem: ${imovel.vagas_garagem} vaga(s) • ${imovel.finalidade}"
               data-img="${imovel.img}"
               data-fotos='${JSON.stringify(imovel.fotos)}'
-            >Ver mais</button>
+            >Ver</button>
           </div>
-        </div>
-      `;
+        </div>`;
       gridList.appendChild(article);
     });
 
@@ -279,8 +289,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   searchButton?.addEventListener("click", filterImoveis);
-  searchInput?.addEventListener("keyup", (e) => { if (e.key === "Enter") filterImoveis(); });
+  searchInput?.addEventListener("keyup", (e) => {
+    if (e.key === "Enter") filterImoveis();
+  });
 
+  // =============================
+  // MODAL DE IMÓVEL
+  // =============================
   function activateHotelModal() {
     const openButtons = document.querySelectorAll(".open-hotel");
     const modal = document.getElementById("hotelModal");
@@ -306,17 +321,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (sideImagesContainer) {
           sideImagesContainer.innerHTML = "";
-          fotos.slice(0, 2).forEach((f, i) => {
+          fotos.forEach((f, i) => {
             const thumb = document.createElement("img");
             thumb.src = `data:${f.mimetype};base64,${f.data}`;
             thumb.alt = `Imagem ${i + 1} - ${btn.dataset.title}`;
-            thumb.className = "thumb";
             thumb.addEventListener("click", () => {
-              mainImgEl.style.opacity = 0;
-              setTimeout(() => {
-                mainImgEl.src = thumb.src;
-                mainImgEl.style.opacity = 1;
-              }, 150);
+              if (mainImgEl) mainImgEl.src = thumb.src;
             });
             sideImagesContainer.appendChild(thumb);
           });
@@ -330,12 +340,32 @@ document.addEventListener("DOMContentLoaded", () => {
       closeModal.addEventListener("click", () => modal.close());
       modal.addEventListener("click", (event) => {
         const rect = modal.getBoundingClientRect();
-        if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) {
-          modal.close();
-        }
+        if (
+          event.clientX < rect.left ||
+          event.clientX > rect.right ||
+          event.clientY < rect.top ||
+          event.clientY > rect.bottom
+        ) modal.close();
       });
     }
   }
+
+  // =============================
+  // BUSCAR IMAGEM POR ID (OPCIONAL)
+  // =============================
+  window.buscarImagemPorId = async function (id) {
+    try {
+      const res = await fetch(`http://192.168.1.4:3000/fotos_casa?id_imovel=${id}`);
+      if (!res.ok) throw new Error("Erro ao buscar imagem");
+      const fotos = await res.json();
+      if (fotos.length > 0) {
+        const imgEl = document.getElementById("imagem-" + id);
+        if (imgEl) imgEl.src = `data:${fotos[0].mimetype};base64,${fotos[0].data}`;
+      }
+    } catch (err) {
+      console.error("Erro ao buscar imagem:", err);
+    }
+  };
 
   // =============================
   // INICIALIZAÇÃO

@@ -13,7 +13,9 @@ function fecharModalTipo() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-
+  // ---------------------------
+  // Elementos do DOM
+  // ---------------------------
   const estadoSelect = document.getElementById("estado");
   const cidadeSelect = document.getElementById("cidade");
   const localizacaoInput = document.querySelector('[placeholder="Digite bairro, rua ou cidade"]');
@@ -25,23 +27,26 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultCount = document.querySelector(".result-count");
   const btnFiltrar = document.querySelector(".btn-filtrar");
 
-
-  let filtros = {
-    estado: "",
-    cidade: "",
-    rua: "",
-    bairro: "",
-    numero: "",
-    tipo_moradia: "",
-    preco_minimo: "",
-    preco_maximo: "",
-    quartos: "",
-    area_total: "",
-    banheiros: "",
-    vagas_garagem: "",
-    disponibilidade: ""
-  };
-
+  // ---------------------------
+  // Armazena filtros
+  // ---------------------------
+let filtros = {
+  estado: "",
+  cidade: "",
+  rua: "",
+  bairro: "",
+  numero: "",
+  tipo_moradia: "",
+  preco_minimo: "",
+  preco_maximo: "",
+  quartos: "",
+  area_total: "",
+  banheiros: "",
+  vagas_garagem: "",
+  disponibilidade: ""
+};
+  // ---------------------------
+  // Eventos de filtro
   // ---------------------------
   estadoSelect.addEventListener("change", () => {
     filtros.estado = estadoSelect.value;
@@ -61,6 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   tipoBotoes.forEach(btn => {
     btn.addEventListener("click", () => {
+      // Remove active de todos
       btn.parentElement.querySelectorAll("button").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       filtros.tipo_moradia = btn.textContent;
@@ -83,6 +89,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // ---------------------------
+  // Função de fetch e render
+  // ---------------------------
   async function fetchImoveis() {
     try {
       const params = new URLSearchParams();
@@ -127,40 +136,13 @@ document.addEventListener("DOMContentLoaded", () => {
     resultCount.textContent = `${imoveis.length} imóveis encontrados`;
   }
 
-
+  // ---------------------------
+  // Evento do botão filtrar
+  // ---------------------------
   btnFiltrar.addEventListener("click", fetchImoveis);
-  const cidades = document.querySelector('#cidade');
 
-  cidades.addEventListener('click', async () => {
-
-    const estado = document.querySelector('#estado').value;
-
-    if (!estado) {
-      alert("Selecione um estado primeiro!");
-      return;
-    }
-    try {
-      // 🔹 API pública do IBGE — sem token
-      const resposta = await fetch(
-        `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estado}/municipios`
-      );
-
-      if (!resposta.ok) throw new Error("Erro ao buscar cidades");
-
-      const dados = await resposta.json();
-
-      dados.forEach(cidade => {
-        cidades.innerHTML += `<option value="${cidade.nome}">${cidade.nome}</option>`
-      });
-      // Quando o usuário escolher, atualiza o valor selecionado
-      cidades.addEventListener('change', (ev) => {
-        cidades.textContent = ev.target.value;
-      });
-    } catch (erro) {
-      console.error("Erro ao carregar cidades:", erro);
-      cidades.innerHTML = '<option value="">Erro ao carregar cidades</option>';
-    }
-  });
-
+  // ---------------------------
+  // Carrega todos os imóveis inicialmente
+  // ---------------------------
   fetchImoveis();
 });
