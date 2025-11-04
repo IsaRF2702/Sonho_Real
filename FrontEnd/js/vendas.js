@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let base64String = "";
   const TAMANHO_MAXIMO_MB = 3;
-  const TAMANHO_MAXIMO_BYTES = TAMANHO_MAXIMO_MB * 2024 * 1024;
+  const TAMANHO_MAXIMO_BYTES = TAMANHO_MAXIMO_MB * 3024 * 2024;
 
   // ===== 1️⃣ Preview da imagem e conversão para Base64 =====
   if (uploadInput) {
@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!file) return;
 
       if (file.size > TAMANHO_MAXIMO_BYTES) {
-        alert(A imagem é muito grande! Limite: ${TAMANHO_MAXIMO_MB}MB.);
+        alert(`A imagem é muito grande! Limite: ${TAMANHO_MAXIMO_MB}MB.`);
         preview.style.display = "none";
         uploadInput.value = "";
         return;
