@@ -1,12 +1,15 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-  // MODAL DE CADASTRO / LOGIN
+  // ============================================
+  // 🔐 MODAL DE CADASTRO / LOGIN
+  // ============================================
   const signupModal = document.getElementById("signupModal");
   const btnSignup = document.getElementById("btn-signup");
   const registerFormElement = document.getElementById("registerForm");
   const loginFormElement = document.getElementById("loginForm");
 
   if (signupModal && btnSignup && registerFormElement && loginFormElement) {
+
     const btnClose = document.createElement("button");
     btnClose.textContent = "✕";
     Object.assign(btnClose.style, {
@@ -16,13 +19,16 @@ document.addEventListener("DOMContentLoaded", () => {
       background: "transparent",
       border: "none",
       fontSize: "24px",
-      cursor: "pointer"
+      cursor: "pointer",
+      color: "#333"
     });
+
     const modalContainer = signupModal.querySelector(".signupModal-container");
     if (modalContainer) modalContainer.appendChild(btnClose);
 
     btnSignup.addEventListener("click", () => signupModal.showModal());
     btnClose.addEventListener("click", () => signupModal.close());
+
     signupModal.addEventListener("click", (e) => {
       const rect = signupModal.getBoundingClientRect();
       if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
@@ -31,7 +37,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // TOGGLE LOGIN / REGISTER
+  // ============================================
+  // 🔁 TOGGLE LOGIN / REGISTER
+  // ============================================
   const toggleBtn = document.getElementById("toggleBtn");
   const welcomeTitle = document.getElementById("welcomeTitle");
   const welcomeText = document.getElementById("welcomeText");
@@ -56,7 +64,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // UI DO USUÁRIO LOGADO
+  // ============================================
+  // 👤 UI DO USUÁRIO LOGADO
+  // ============================================
   function setUserUI(userEmail) {
     const btnLogin = document.getElementById("btn-signup");
     if (!btnLogin) return;
@@ -110,7 +120,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const loggedUser = localStorage.getItem("user");
   if (loggedUser) setUserUI(loggedUser);
 
-  // REGISTRO
+   
+  // 📝 REGISTRO
+ 
   if (registerFormElement) {
     const registerMsg = document.createElement("p");
     registerMsg.style.color = "red";
@@ -151,7 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // LOGIN
+  // 🔑 LOGIN
   if (loginFormElement) {
     loginFormElement.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -186,6 +198,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // 🏡 FETCH DE IMÓVEIS
   const searchInput = document.querySelector('.search input[type="search"]');
   const typeSelect = document.querySelector('.search select');
   const searchButton = document.querySelector('.search .go');
@@ -197,9 +210,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!res.ok) throw new Error("Falha ao conectar ao servidor");
       const imoveis = await res.json();
 
+      // Adiciona fotos
       const imoveisComFotos = await Promise.all(imoveis.map(async (imovel) => {
         try {
-          const resImg = await fetch(`http://192.168.1.14:3000/fotos_casa?id_imovel=${imovel.id_imovel}`);
+          const resImg = await fetch(`http://192.168.1.44:3000/fotos_casa?id_imovel=${imovel.id_imovel}`);
           const fotos = resImg.ok ? await resImg.json() : [];
           const imgUrl = fotos.length > 0 ? `data:${fotos[0].mimetype};base64,${fotos[0].data}` : 'img/padrao.jpg';
           return { ...imovel, img: imgUrl, fotos };
@@ -215,7 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // FUNÇÃO DE RENDER EM GRID 1 GRANDE + 2 PEQUENAS
+  // 🔎 RENDER E FILTRO
   function renderImoveis(imoveis) {
     if (!gridList) return;
     gridList.innerHTML = "";
@@ -223,47 +237,15 @@ document.addEventListener("DOMContentLoaded", () => {
       gridList.innerHTML = '<p style="color:var(--muted)">Nenhum imóvel encontrado.</p>';
       return;
     }
-
+    console.log(imoveis)
     imoveis.forEach((imovel) => {
       const localizacao = `${imovel.rua}, ${imovel.numero} - ${imovel.bairro}, ${imovel.cidade} - ${imovel.estado}`;
-      const article = document.createElement("article");
-      article.className = "listing grid-style";
-      article.setAttribute("role", "listitem");
-
-      const fotos = imovel.fotos.length > 0 ? imovel.fotos.slice(0, 3) : [{ data: imovel.img, mimetype: "image/jpeg" }];
-      
-      article.innerHTML = `
-        <div class="grid-container">
-          <div class="grid-large">
-            <img src="data:${fotos[0].mimetype};base64,${fotos[0].data}" alt="${imovel.nome_casa}">
-          </div>
-          <div class="grid-small">
-            ${fotos.slice(1).map(f => `<img src="data:${f.mimetype};base64,${f.data}" alt="${imovel.nome_casa}">`).join('')}
-          </div>
-        </div>
-        <div class="info">
-          <div>
-            <div style="font-weight:700">${imovel.nome_casa}</div>
-            <div class="meta">${imovel.tipo_moradia} • ${imovel.area_total || ""}m²</div>
-          </div>
-          <div class="card-footer">
-            <div class="price">R$ ${Number(imovel.preco).toLocaleString("pt-BR")}</div>
-            <button class="btn btn-primary open-hotel"
-              data-title="${imovel.nome_casa}"
-              data-price="R$ ${Number(imovel.preco).toLocaleString('pt-BR')}"
-              data-location="${localizacao}"
-              data-rooms="${imovel.quartos} quartos • ${imovel.banheiros} banheiros"
-              data-desc="Área total: ${imovel.area_total}m² • Garagem: ${imovel.vagas_garagem} vaga(s) • ${imovel.finalidade}"
-              data-img="${imovel.img}"
-              data-fotos='${JSON.stringify(imovel.fotos)}'
-            >Ver mais</button>
-          </div>
-        </div>
-      `;
+      const article = criarCard(imovel);
       gridList.appendChild(article);
     });
 
     activateHotelModal();
+    initFavoritos();
   }
 
   async function filterImoveis() {
@@ -281,66 +263,153 @@ document.addEventListener("DOMContentLoaded", () => {
   searchButton?.addEventListener("click", filterImoveis);
   searchInput?.addEventListener("keyup", (e) => { if (e.key === "Enter") filterImoveis(); });
 
+
+  function criarCard(imovel) {
+    const article = document.createElement("article");
+    article.className = "listing grid-style";
+    article.dataset.id = imovel.id_imovel;
+    console.log(imovel)
+    const fotos = imovel.fotos.length > 0 ? imovel.fotos.slice(0, 3) : [{ data: imovel.img, mimetype: "image/jpeg" }];
+    const localizacao = `${imovel.rua}, ${imovel.numero} - ${imovel.bairro}, ${imovel.cidade} - ${imovel.estado}`;
+
+    article.innerHTML = `
+      <div class="grid-container">
+        <div class="grid-large">
+          <img src="data:${fotos[0].mimetype};base64,${fotos[0].data}" alt="${imovel.nome_casa}">
+        </div>
+        <div class="grid-small">
+          ${fotos.slice(1).map(f => `<img src="data:${f.mimetype};base64,${f.data}" alt="${imovel.nome_casa}">`).join('')}
+        </div>
+      </div>
+
+      <div class="info">
+        <div>
+          <div style="font-weight:700">${imovel.nome_casa}</div>
+          <div class="meta">
+            ${imovel.tipo_moradia} • ${imovel.area_total || "N/A"}m² • ${imovel.quartos} quartos • ${imovel.banheiros} banheiros
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <div class="price">R$ ${Number(imovel.preco).toLocaleString("pt-BR")}</div>
+          <button class="btn btn-primary open-hotel"
+            data-title="${imovel.nome_casa}"
+            data-price="R$ ${Number(imovel.preco).toLocaleString('pt-BR')}"
+            data-location="${localizacao}"
+            data-rooms="${imovel.quartos} quartos • ${imovel.banheiros} banheiros"
+            data-garage="${imovel.vagas_garagem || 0} vaga(s)"
+            data-area="${imovel.area_total || 'N/A'}m²"
+            data-finalidade="${imovel.finalidade || ''}"
+            data-desc="${imovel.descricao || ''}"
+            data-fotos='${JSON.stringify(imovel.fotos)}'
+          >Ver mais</button>
+        </div>
+      </div>
+    `;
+    return article;
+  }
+
   function activateHotelModal() {
-    const openButtons = document.querySelectorAll(".open-hotel");
     const modal = document.getElementById("hotelModal");
-    const closeModal = document.getElementById("closeModal");
+    if (!modal) return;
+    const closeBtn = document.getElementById("closeModal");
+
     const titleEl = document.getElementById("hotel-title");
-    const mainImgEl = document.getElementById("hotel-image");
-    const sideImagesContainer = document.getElementById("hotel-thumbs");
     const priceEl = document.getElementById("hotel-price");
     const locationEl = document.getElementById("hotel-location");
     const roomsEl = document.getElementById("hotel-rooms");
+    const garageEl = document.getElementById("hotel-garage");
+    const areaEl = document.getElementById("hotel-area");
     const descEl = document.getElementById("hotel-desc");
+    const amenitiesEl = document.getElementById("hotel-amenities");
+    const mainImg = document.getElementById("hotel-image");
+    const thumbsWrapper = document.getElementById("thumbs-wrapper");
+    const prevThumb = document.getElementById("prev-thumb");
+    const nextThumb = document.getElementById("next-thumb");
+
+    const openButtons = document.querySelectorAll(".open-hotel");
+
+    let currentImgIndex = 0;
+    let currentImages = [];
 
     openButtons.forEach((btn) => {
       btn.addEventListener("click", () => {
         const fotos = JSON.parse(btn.dataset.fotos || "[]");
+        const mainImage = fotos.length ? `data:${fotos[0].mimetype};base64,${fotos[0].data}` : "img/padrao.jpg";
 
-        if (titleEl) titleEl.textContent = btn.dataset.title;
-        if (mainImgEl) mainImgEl.src = fotos[0] ? `data:${fotos[0].mimetype};base64,${fotos[0].data}` : btn.dataset.img;
-        if (priceEl) priceEl.textContent = btn.dataset.price;
-        if (locationEl) locationEl.textContent = btn.dataset.location;
-        if (roomsEl) roomsEl.textContent = btn.dataset.rooms;
-        if (descEl) descEl.textContent = btn.dataset.desc;
+        titleEl.textContent = btn.dataset.title || "Imóvel";
+        priceEl.textContent = btn.dataset.price || "";
+        locationEl.innerHTML = `<strong>📍 Localização:</strong> ${btn.dataset.location || ""}`;
+        roomsEl.innerHTML = `<strong>🛏️ Quartos / Banheiros:</strong> ${btn.dataset.rooms || ""}`;
+        garageEl.innerHTML = `<strong>🚗 Garagem:</strong> ${btn.dataset.garage || "N/A"}`;
+        areaEl.innerHTML = `<strong>📐 Área Total:</strong> ${btn.dataset.area || "N/A"}`;
+        descEl.textContent = btn.dataset.desc?.trim() || "Sem descrição detalhada.";
 
-        if (sideImagesContainer) {
-          sideImagesContainer.innerHTML = "";
-          fotos.slice(0, 2).forEach((f, i) => {
-            const thumb = document.createElement("img");
-            thumb.src = `data:${f.mimetype};base64,${f.data}`;
-            thumb.alt = `Imagem ${i + 1} - ${btn.dataset.title}`;
-            thumb.className = "thumb";
-            thumb.addEventListener("click", () => {
-              mainImgEl.style.opacity = 0;
-              setTimeout(() => {
-                mainImgEl.src = thumb.src;
-                mainImgEl.style.opacity = 1;
-              }, 150);
-            });
-            sideImagesContainer.appendChild(thumb);
+        amenitiesEl.innerHTML = "";
+        const comodidades = [
+          btn.dataset.finalidade && `Finalidade: ${btn.dataset.finalidade}`,
+        ].filter(Boolean);
+
+        if (comodidades.length > 0) {
+          comodidades.forEach((item) => {
+            const li = document.createElement("li");
+            li.textContent = item;
+            amenitiesEl.appendChild(li);
           });
+        } else {
+          amenitiesEl.innerHTML = "<li>Sem comodidades informadas</li>";
         }
 
-        if (modal) modal.showModal();
+        mainImg.src = mainImage;
+        currentImages = fotos.map((f) => `data:${f.mimetype};base64,${f.data}`);
+        if (currentImages.length === 0) currentImages.push(mainImage);
+        currentImgIndex = 0;
+
+        thumbsWrapper.innerHTML = "";
+        currentImages.forEach((src, i) => {
+          const thumb = document.createElement("img");
+          thumb.src = src;
+          thumb.className = "thumb";
+          thumb.addEventListener("click", () => {
+            currentImgIndex = i;
+            mainImg.style.opacity = 0;
+            setTimeout(() => {
+              mainImg.src = src;
+              mainImg.style.opacity = 1;
+            }, 150);
+            highlightThumb(i);
+          });
+          thumbsWrapper.appendChild(thumb);
+        });
+
+        highlightThumb(0);
+        modal.showModal();
       });
     });
 
-    if (closeModal && modal) {
-      closeModal.addEventListener("click", () => modal.close());
-      modal.addEventListener("click", (event) => {
-        const rect = modal.getBoundingClientRect();
-        if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) {
-          modal.close();
-        }
+    function highlightThumb(index) {
+      document.querySelectorAll(".thumb").forEach((thumb, i) => {
+        thumb.classList.toggle("active", i === index);
       });
     }
+
+    if (closeBtn) closeBtn.addEventListener("click", () => modal.close());
+    modal.addEventListener("click", (e) => {
+      const rect = modal.getBoundingClientRect();
+      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+        modal.close();
+      }
+    });
   }
 
-  // =============================
-  // INICIALIZAÇÃO
-  // =============================
-  filterImoveis();
-  activateHotelModal();
+
+
+  async function initApp() {
+    const imoveis = await fetchImoveis();
+    renderImoveis(imoveis);
+    renderDestaques(imoveis);
+  }
+
+  initApp();
 
 });
